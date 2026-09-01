@@ -18,7 +18,8 @@ class YoYoShuttle {
   });
 
   String get levelDisplay => '$speedLevel.$shuttleInLevel';
-  double get totalDurationSeconds => runDurationSeconds + recoveryDurationSeconds;
+  double get totalDurationSeconds =>
+      runDurationSeconds + recoveryDurationSeconds;
 }
 
 class YoYoProtocol {
@@ -32,14 +33,16 @@ class YoYoProtocol {
     void addStage(int speedLevel, double speedKmh, int shuttleCount) {
       for (int i = 1; i <= shuttleCount; i++) {
         distance += 40;
-        list.add(YoYoShuttle(
-          shuttleNumber: shuttleNumber,
-          speedLevel: speedLevel,
-          shuttleInLevel: i,
-          speedKmh: speedKmh,
-          cumulativeDistanceMeters: distance,
-          runDurationSeconds: 144.0 / speedKmh,
-        ));
+        list.add(
+          YoYoShuttle(
+            shuttleNumber: shuttleNumber,
+            speedLevel: speedLevel,
+            shuttleInLevel: i,
+            speedKmh: speedKmh,
+            cumulativeDistanceMeters: distance,
+            runDurationSeconds: 144.0 / speedKmh,
+          ),
+        );
         shuttleNumber++;
       }
     }

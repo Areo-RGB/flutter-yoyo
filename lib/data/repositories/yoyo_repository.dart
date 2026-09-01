@@ -1,14 +1,16 @@
 import 'dart:async';
+
 import '../models/test_session.dart';
 import '../services/database_service.dart';
 
 class YoYoRepository {
   final DatabaseService _databaseService;
 
-  YoYoRepository({DatabaseService? databaseService}) 
-      : _databaseService = databaseService ?? DatabaseService();
+  YoYoRepository({DatabaseService? databaseService})
+    : _databaseService = databaseService ?? DatabaseService();
 
-  Stream<List<SessionWithResults>> get allSessions => _databaseService.watchAllSessions();
+  Stream<List<SessionWithResults>> get allSessions =>
+      _databaseService.watchAllSessions();
 
   Future<int> saveSession(TestSession session, List<AthleteResult> results) {
     return _databaseService.saveCompleteSession(session, results);

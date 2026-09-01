@@ -8,10 +8,7 @@ import 'package:yoyo_ir1_tracker/ui/features/active_test/view_models/yoyo_view_m
 class HistoryScreen extends StatelessWidget {
   final YoYoViewModel viewModel;
 
-  const HistoryScreen({
-    super.key,
-    required this.viewModel,
-  });
+  const HistoryScreen({super.key, required this.viewModel});
 
   @override
   Widget build(BuildContext context) {
@@ -30,8 +27,18 @@ class HistoryScreen extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Saved Test History', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                      Text('${sessions.length} past session${sessions.length == 1 ? "" : "s"}', style: const TextStyle(color: slate400, fontSize: 14)),
+                      const Text(
+                        'Saved Test History',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        '${sessions.length} past session${sessions.length == 1 ? "" : "s"}',
+                        style: const TextStyle(color: slate400, fontSize: 14),
+                      ),
                     ],
                   ),
                 ],
@@ -46,7 +53,9 @@ class HistoryScreen extends StatelessWidget {
                       itemBuilder: (context, index) {
                         return _HistorySessionCard(
                           sessionWithResults: sessions[index],
-                          onDelete: () => viewModel.deleteSession(sessions[index].session.id),
+                          onDelete: () => viewModel.deleteSession(
+                            sessions[index].session.id,
+                          ),
                         );
                       },
                     ),
@@ -64,9 +73,20 @@ class HistoryScreen extends StatelessWidget {
         children: const [
           Icon(Icons.history, color: slate700, size: 64),
           SizedBox(height: 16),
-          Text('No saved tests yet', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(
+            'No saved tests yet',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           SizedBox(height: 8),
-          Text('Complete a Yo-Yo IR1 test and save it\nto see your history here.', textAlign: TextAlign.center, style: TextStyle(color: slate400, fontSize: 14)),
+          Text(
+            'Complete a Yo-Yo IR1 test and save it\nto see your history here.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: slate400, fontSize: 14),
+          ),
         ],
       ),
     );
@@ -92,9 +112,10 @@ class _HistorySessionCardState extends State<_HistorySessionCard> {
   void _copyToClipboard(BuildContext context) {
     final s = widget.sessionWithResults.session;
     final r = widget.sessionWithResults.results;
-    
-    final dateStr = DateFormat('MMM dd, yyyy').format(DateTime.fromMillisecondsSinceEpoch(s.timestampMs));
-    
+
+    final dateStr = DateFormat('MMM dd, yyyy')
+        .format(DateTime.fromMillisecondsSinceEpoch(s.timestampMs));
+
     final buffer = StringBuffer();
     buffer.writeln('🏃 Yo-Yo IR1 Test: ${s.title}');
     buffer.writeln('📅 Date: $dateStr');
@@ -102,7 +123,7 @@ class _HistorySessionCardState extends State<_HistorySessionCard> {
       buffer.writeln('📝 Notes: ${s.notes}');
     }
     buffer.writeln('---');
-    
+
     for (var i = 0; i < r.length; i++) {
       final res = r[i];
       String medal = '';
@@ -115,14 +136,20 @@ class _HistorySessionCardState extends State<_HistorySessionCard> {
       } else {
         medal = '${i + 1}. ';
       }
-      
-      buffer.writeln('$medal${res.athleteName}: ${res.finalDistanceMeters}m (Lvl ${res.finalLevel}.${res.finalShuttleNumber}, VO2max: ${res.vo2Max.toStringAsFixed(1)})');
+
+      buffer.writeln(
+        '$medal${res.athleteName}: ${res.finalDistanceMeters}m (Lvl ${res.finalLevel}.${res.finalShuttleNumber}, VO2max: ${res.vo2Max.toStringAsFixed(1)})',
+      );
     }
 
     Clipboard.setData(ClipboardData(text: buffer.toString())).then((_) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Copied to clipboard'), backgroundColor: runGreen, duration: Duration(seconds: 2)),
+          const SnackBar(
+            content: Text('Copied to clipboard'),
+            backgroundColor: runGreen,
+            duration: Duration(seconds: 2),
+          ),
         );
       }
     });
@@ -132,9 +159,12 @@ class _HistorySessionCardState extends State<_HistorySessionCard> {
   Widget build(BuildContext context) {
     final s = widget.sessionWithResults.session;
     final r = widget.sessionWithResults.results;
-    
-    final dateStr = DateFormat('MMM dd, yyyy • HH:mm').format(DateTime.fromMillisecondsSinceEpoch(s.timestampMs));
-    final maxDist = r.isEmpty ? 0 : r.map((e) => e.finalDistanceMeters).reduce((a, b) => a > b ? a : b);
+
+    final dateStr = DateFormat('MMM dd, yyyy • HH:mm')
+        .format(DateTime.fromMillisecondsSinceEpoch(s.timestampMs));
+    final maxDist = r.isEmpty
+        ? 0
+        : r.map((e) => e.finalDistanceMeters).reduce((a, b) => a > b ? a : b);
 
     return Card(
       color: slate900,
@@ -152,19 +182,45 @@ class _HistorySessionCardState extends State<_HistorySessionCard> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(s.title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                        Text(
+                          s.title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         const SizedBox(height: 4),
-                        Text(dateStr, style: const TextStyle(color: slate400, fontSize: 12)),
+                        Text(
+                          dateStr,
+                          style: const TextStyle(color: slate400, fontSize: 12),
+                        ),
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            const Icon(Icons.directions_run, color: slate500, size: 14),
+                            const Icon(
+                              Icons.directions_run,
+                              color: slate500,
+                              size: 14,
+                            ),
                             const SizedBox(width: 4),
-                            Text('Max: ${NumberFormat('#,###').format(maxDist)}m', style: const TextStyle(color: slate400, fontSize: 12)),
+                            Text(
+                              'Max: ${NumberFormat('#,###').format(maxDist)}m',
+                              style: const TextStyle(
+                                color: slate400,
+                                fontSize: 12,
+                              ),
+                            ),
                             const SizedBox(width: 16),
                             const Icon(Icons.group, color: slate500, size: 14),
                             const SizedBox(width: 4),
-                            Text('${r.length} athletes', style: const TextStyle(color: slate400, fontSize: 12)),
+                            Text(
+                              '${r.length} athletes',
+                              style: const TextStyle(
+                                color: slate400,
+                                fontSize: 12,
+                              ),
+                            ),
                           ],
                         ),
                       ],
@@ -177,29 +233,47 @@ class _HistorySessionCardState extends State<_HistorySessionCard> {
                         onPressed: () => _copyToClipboard(context),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete_outline, color: warnOrange),
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: warnOrange,
+                        ),
                         onPressed: () {
                           showDialog(
                             context: context,
                             builder: (ctx) => AlertDialog(
                               backgroundColor: slate900,
-                              title: const Text('Delete Session?', style: TextStyle(color: Colors.white)),
-                              content: const Text('This action cannot be undone.', style: TextStyle(color: slate400)),
+                              title: const Text(
+                                'Delete Session?',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              content: const Text(
+                                'This action cannot be undone.',
+                                style: TextStyle(color: slate400),
+                              ),
                               actions: [
-                                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: const Text('Cancel'),
+                                ),
                                 TextButton(
                                   onPressed: () {
                                     Navigator.pop(ctx);
                                     widget.onDelete();
                                   },
-                                  child: const Text('Delete', style: TextStyle(color: warnOrange)),
+                                  child: const Text(
+                                    'Delete',
+                                    style: TextStyle(color: warnOrange),
+                                  ),
                                 ),
                               ],
                             ),
                           );
                         },
                       ),
-                      Icon(_isExpanded ? Icons.expand_less : Icons.expand_more, color: slate500),
+                      Icon(
+                        _isExpanded ? Icons.expand_less : Icons.expand_more,
+                        color: slate500,
+                      ),
                     ],
                   ),
                 ],
@@ -211,7 +285,13 @@ class _HistorySessionCardState extends State<_HistorySessionCard> {
             if (s.notes.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.all(16),
-                child: Text('Notes: ${s.notes}', style: const TextStyle(color: slate400, fontStyle: FontStyle.italic)),
+                child: Text(
+                  'Notes: ${s.notes}',
+                  style: const TextStyle(
+                    color: slate400,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
               ),
             Container(
               color: slate800,
@@ -221,21 +301,50 @@ class _HistorySessionCardState extends State<_HistorySessionCard> {
                   final index = entry.key;
                   final res = entry.value;
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 4,
+                    ),
                     child: Row(
                       children: [
                         SizedBox(
                           width: 24,
-                          child: Text('${index + 1}.', style: const TextStyle(color: slate500, fontSize: 12, fontWeight: FontWeight.bold)),
+                          child: Text(
+                            '${index + 1}.',
+                            style: const TextStyle(
+                              color: slate500,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                         Expanded(
-                          child: Text(res.athleteName, style: const TextStyle(color: Colors.white, fontSize: 14)),
+                          child: Text(
+                            res.athleteName,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                            ),
+                          ),
                         ),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('${NumberFormat('#,###').format(res.finalDistanceMeters)}m', style: const TextStyle(color: athleticBlue, fontWeight: FontWeight.bold, fontSize: 14)),
-                            Text('Lvl ${res.finalLevel}.${res.finalShuttleNumber} • VO₂ ${res.vo2Max.toStringAsFixed(1)}', style: const TextStyle(color: slate400, fontSize: 10)),
+                            Text(
+                              '${NumberFormat('#,###').format(res.finalDistanceMeters)}m',
+                              style: const TextStyle(
+                                color: athleticBlue,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            Text(
+                              'Lvl ${res.finalLevel}.${res.finalShuttleNumber} • VO₂ ${res.vo2Max.toStringAsFixed(1)}',
+                              style: const TextStyle(
+                                color: slate400,
+                                fontSize: 10,
+                              ),
+                            ),
                           ],
                         ),
                       ],
@@ -244,7 +353,7 @@ class _HistorySessionCardState extends State<_HistorySessionCard> {
                 }).toList(),
               ),
             ),
-          ]
+          ],
         ],
       ),
     );

@@ -1,6 +1,12 @@
 enum AthleteStatus { running, warned, eliminated }
+
 enum ShuttlePhase { running, recovery }
+
 enum TestState { idle, running, paused, completed }
+
+// A sentinel lets copyWith distinguish an omitted nullable value from an
+// explicit null. The latter is required when resetting a warning or result.
+const Object _copyWithUnset = Object();
 
 class Athlete {
   final String id;
@@ -40,32 +46,50 @@ class Athlete {
     String? name,
     AthleteStatus? status,
     bool? isSelected,
-    int? warningDistanceMeters,
-    String? warningLevel,
-    int? warningShuttle,
-    int? warningTimestampMs,
-    int? finalDistanceMeters,
-    String? finalLevel,
-    int? finalShuttle,
-    int? finishTimestampMs,
-    int? rank,
-    double? vo2Max,
+    Object? warningDistanceMeters = _copyWithUnset,
+    Object? warningLevel = _copyWithUnset,
+    Object? warningShuttle = _copyWithUnset,
+    Object? warningTimestampMs = _copyWithUnset,
+    Object? finalDistanceMeters = _copyWithUnset,
+    Object? finalLevel = _copyWithUnset,
+    Object? finalShuttle = _copyWithUnset,
+    Object? finishTimestampMs = _copyWithUnset,
+    Object? rank = _copyWithUnset,
+    Object? vo2Max = _copyWithUnset,
   }) {
     return Athlete(
       id: id ?? this.id,
       name: name ?? this.name,
       status: status ?? this.status,
       isSelected: isSelected ?? this.isSelected,
-      warningDistanceMeters: warningDistanceMeters ?? this.warningDistanceMeters,
-      warningLevel: warningLevel ?? this.warningLevel,
-      warningShuttle: warningShuttle ?? this.warningShuttle,
-      warningTimestampMs: warningTimestampMs ?? this.warningTimestampMs,
-      finalDistanceMeters: finalDistanceMeters ?? this.finalDistanceMeters,
-      finalLevel: finalLevel ?? this.finalLevel,
-      finalShuttle: finalShuttle ?? this.finalShuttle,
-      finishTimestampMs: finishTimestampMs ?? this.finishTimestampMs,
-      rank: rank ?? this.rank,
-      vo2Max: vo2Max ?? this.vo2Max,
+      warningDistanceMeters: identical(warningDistanceMeters, _copyWithUnset)
+          ? this.warningDistanceMeters
+          : warningDistanceMeters as int?,
+      warningLevel: identical(warningLevel, _copyWithUnset)
+          ? this.warningLevel
+          : warningLevel as String?,
+      warningShuttle: identical(warningShuttle, _copyWithUnset)
+          ? this.warningShuttle
+          : warningShuttle as int?,
+      warningTimestampMs: identical(warningTimestampMs, _copyWithUnset)
+          ? this.warningTimestampMs
+          : warningTimestampMs as int?,
+      finalDistanceMeters: identical(finalDistanceMeters, _copyWithUnset)
+          ? this.finalDistanceMeters
+          : finalDistanceMeters as int?,
+      finalLevel: identical(finalLevel, _copyWithUnset)
+          ? this.finalLevel
+          : finalLevel as String?,
+      finalShuttle: identical(finalShuttle, _copyWithUnset)
+          ? this.finalShuttle
+          : finalShuttle as int?,
+      finishTimestampMs: identical(finishTimestampMs, _copyWithUnset)
+          ? this.finishTimestampMs
+          : finishTimestampMs as int?,
+      rank: identical(rank, _copyWithUnset) ? this.rank : rank as int?,
+      vo2Max: identical(vo2Max, _copyWithUnset)
+          ? this.vo2Max
+          : vo2Max as double?,
     );
   }
 
@@ -74,8 +98,22 @@ class Athlete {
   bool get isRunning => status == AthleteStatus.running;
 
   static const List<String> defaultAthleteNames = [
-    'Silas', 'Finley', 'Arvid', 'Lion', 'Jakob', 'Paul', 'Lennox', 'Levi',
-    'Lasse', 'Milan', 'Lionel', 'Arturo', 'Peter', 'Tommy', 'Alex', 'Tayo'
+    'Silas',
+    'Finley',
+    'Arvid',
+    'Lion',
+    'Jakob',
+    'Paul',
+    'Lennox',
+    'Levi',
+    'Lasse',
+    'Milan',
+    'Lionel',
+    'Arturo',
+    'Peter',
+    'Tommy',
+    'Alex',
+    'Tayo',
   ];
 
   static List<Athlete> createDefaultRoster() {

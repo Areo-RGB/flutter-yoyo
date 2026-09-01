@@ -1,6 +1,8 @@
 import 'dart:async';
+
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+
 import '../models/test_session.dart';
 
 class DatabaseService {
@@ -9,7 +11,7 @@ class DatabaseService {
   DatabaseService._internal();
 
   Database? _database;
-  final StreamController<List<SessionWithResults>> _sessionsController = 
+  final StreamController<List<SessionWithResults>> _sessionsController =
       StreamController<List<SessionWithResults>>.broadcast();
 
   Future<Database> get database async {
@@ -92,43 +94,53 @@ class DatabaseService {
     await _notifyListeners();
   }
 
-  Future<int> saveCompleteSession(TestSession session, List<AthleteResult> results) async {
+  Future<int> saveCompleteSession(
+    TestSession session,
+    List<AthleteResult> results,
+  ) async {
     final db = await database;
     int sessionId = 0;
-    
+
     await db.transaction((txn) async {
       sessionId = await txn.insert('test_sessions', session.toMap());
-      
+
       for (final result in results) {
         final resultWithId = result.copyWith(sessionId: sessionId);
         await txn.insert('athlete_results', resultWithId.toMap());
       }
     });
-    
+
     await _notifyListeners();
     return sessionId;
   }
 
   Future<List<SessionWithResults>> getAllSessions() async {
     final db = await database;
-    final sessionMaps = await db.query('test_sessions', orderBy: 'timestampMs DESC');
-    
+    final sessionMaps = await db.query(
+      'test_sessions',
+      orderBy: 'timestampMs DESC',
+    );
+
     List<SessionWithResults> results = [];
-    
+
     for (final sessionMap in sessionMaps) {
       final session = TestSession.fromMap(sessionMap);
-      
+
       final resultMaps = await db.query(
         'athlete_results',
         where: 'sessionId = ?',
         whereArgs: [session.id],
       );
-      
-      final athleteResults = resultMaps.map((m) => AthleteResult.fromMap(m)).toList();
-      
-      results.add(SessionWithResults(session: session, results: athleteResults));
+
+      final athleteResults = resultMaps
+          .map((m) => AthleteResult.fromMap(m))
+          .toList();
+
+      results.add(
+        SessionWithResults(session: session, results: athleteResults),
+      );
     }
-    
+
     return results;
   }
 
@@ -140,29 +152,27 @@ class DatabaseService {
       whereArgs: [id],
       limit: 1,
     );
-    
+
     if (sessionMaps.isEmpty) return null;
-    
+
     final session = TestSession.fromMap(sessionMaps.first);
-    
+
     final resultMaps = await db.query(
       'athlete_results',
       where: 'sessionId = ?',
       whereArgs: [session.id],
     );
-    
-    final athleteResults = resultMaps.map((m) => AthleteResult.fromMap(m)).toList();
-    
+
+    final athleteResults = resultMaps
+        .map((m) => AthleteResult.fromMap(m))
+        .toList();
+
     return SessionWithResults(session: session, results: athleteResults);
   }
 
   Future<void> deleteSession(int id) async {
     final db = await database;
-    await db.delete(
-      'test_sessions',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    await db.delete('test_sessions', where: 'id = ?', whereArgs: [id]);
     await _notifyListeners();
   }
 

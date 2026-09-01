@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:yoyo_ir1_tracker/data/models/athlete.dart';
+import 'package:yoyo_ir1_tracker/ui/core/athlete_avatar.dart';
 import 'package:yoyo_ir1_tracker/ui/core/colors.dart';
 
 class AthleteCard extends StatelessWidget {
@@ -25,9 +26,15 @@ class AthleteCard extends StatelessWidget {
     final isEliminated = athlete.status == AthleteStatus.eliminated;
 
     final targetBorderWidth = isWarned ? 3.5 : 1.0;
-    final targetBorderColor = isWarned ? warnOrange : (isEliminated ? slate700 : Colors.transparent);
-    final bgColor = isWarned ? warnOrange.withValues(alpha: 0.1) : (isEliminated ? slate800.withValues(alpha: 0.5) : slate800);
-    final avatarColor = isEliminated ? slate700 : (isWarned ? warnOrange : athleticBlue);
+    final targetBorderColor = isWarned
+        ? warnOrange
+        : (isEliminated ? slate700 : Colors.transparent);
+    final bgColor = isWarned
+        ? warnOrange.withValues(alpha: 0.1)
+        : (isEliminated ? slate800.withValues(alpha: 0.5) : slate800);
+    final avatarColor = isEliminated
+        ? slate700
+        : (isWarned ? warnOrange : athleticBlue);
 
     return TweenAnimationBuilder<double>(
       duration: const Duration(milliseconds: 300),
@@ -43,7 +50,10 @@ class AthleteCard extends StatelessWidget {
               elevation: isEliminated ? 0 : 2,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: borderColor ?? Colors.transparent, width: borderWidth),
+                side: BorderSide(
+                  color: borderColor ?? Colors.transparent,
+                  width: borderWidth,
+                ),
               ),
               child: InkWell(
                 onTap: isEliminated ? null : onClick,
@@ -55,13 +65,10 @@ class AthleteCard extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          CircleAvatar(
+                          AthleteAvatar(
+                            name: athlete.name,
                             radius: 20,
                             backgroundColor: avatarColor,
-                            child: Text(
-                              _getInitials(athlete.name),
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -78,7 +85,11 @@ class AthleteCard extends StatelessWidget {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                _buildStatusTag(isRunning, isWarned, isEliminated),
+                                _buildStatusTag(
+                                  isRunning,
+                                  isWarned,
+                                  isEliminated,
+                                ),
                               ],
                             ),
                           ),
@@ -103,13 +114,6 @@ class AthleteCard extends StatelessWidget {
         );
       },
     );
-  }
-
-  String _getInitials(String name) {
-    final parts = name.trim().split(RegExp(r'\s+'));
-    if (parts.isEmpty) return '?';
-    if (parts.length == 1) return parts[0].substring(0, 1).toUpperCase();
-    return '${parts[0].substring(0, 1)}${parts[1].substring(0, 1)}'.toUpperCase();
   }
 
   Widget _buildStatusTag(bool isRunning, bool isWarned, bool isEliminated) {
@@ -140,7 +144,11 @@ class AthleteCard extends StatelessWidget {
         ],
         Text(
           text,
-          style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: color,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );
@@ -179,7 +187,11 @@ class AthleteCard extends StatelessWidget {
             const Text(
               'Tap again to save distance & finish',
               textAlign: TextAlign.center,
-              style: TextStyle(color: slate200, fontSize: 11, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                color: slate200,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
@@ -196,7 +208,10 @@ class AthleteCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _buildResultStat('Dist', '${athlete.finalDistanceMeters ?? "-"}m'),
-            _buildResultStat('Lvl', '${athlete.finalLevel ?? "-"}.${athlete.finalShuttle ?? ""}'),
+            _buildResultStat(
+              'Lvl',
+              '${athlete.finalLevel ?? "-"}.${athlete.finalShuttle ?? ""}',
+            ),
             _buildResultStat('VO2', athlete.vo2Max?.toStringAsFixed(1) ?? '-'),
           ],
         ),
@@ -209,7 +224,14 @@ class AthleteCard extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(label, style: const TextStyle(color: slate400, fontSize: 10)),
-        Text(value, style: const TextStyle(color: slate200, fontSize: 12, fontWeight: FontWeight.bold)),
+        Text(
+          value,
+          style: const TextStyle(
+            color: slate200,
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ],
     );
   }

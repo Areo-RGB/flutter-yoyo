@@ -26,6 +26,17 @@ dependencies:
   share_plus: ^10.1.4
   path_provider: ^2.1.5
 
+  # Nearby remote controller (Android Google Nearby Connections)
+  nearby_connections: 4.3.0
+  permission_handler: ^12.0.1
+  location: ^10.0.2
+  shared_preferences: ^2.3.3
+
+  # Auto-updater dependencies
+  http: ^1.2.2
+  url_launcher: ^6.3.1
+  open_file_plus: ^3.4.1+1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -35,4 +46,6 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/logo.png
     - assets/audio/audio.mp3
+    - assets/avatars/

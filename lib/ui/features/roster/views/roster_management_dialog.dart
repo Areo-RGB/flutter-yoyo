@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:yoyo_ir1_tracker/data/models/athlete.dart';
+import 'package:yoyo_ir1_tracker/ui/core/athlete_avatar.dart';
 import 'package:yoyo_ir1_tracker/ui/core/colors.dart';
 
 class RosterManagementDialog extends StatefulWidget {
@@ -61,8 +62,12 @@ class _RosterManagementDialogState extends State<RosterManagementDialog> {
                     decoration: const InputDecoration(
                       hintText: 'New athlete name...',
                       hintStyle: TextStyle(color: slate500),
-                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: slate600)),
-                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: athleticBlue)),
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: slate600),
+                      ),
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: athleticBlue),
+                      ),
                     ),
                     onSubmitted: (_) => _handleAdd(),
                   ),
@@ -82,18 +87,14 @@ class _RosterManagementDialogState extends State<RosterManagementDialog> {
                 itemCount: widget.athletes.length,
                 itemBuilder: (context, index) {
                   final athlete = widget.athletes[index];
-                  final initials = athlete.name.isNotEmpty 
-                      ? athlete.name.substring(0, 1).toUpperCase() 
-                      : '?';
-                      
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Row(
                       children: [
-                        CircleAvatar(
+                        AthleteAvatar(
+                          name: athlete.name,
                           backgroundColor: slate700,
                           radius: 16,
-                          child: Text(initials, style: const TextStyle(color: Colors.white, fontSize: 12)),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -103,7 +104,11 @@ class _RosterManagementDialogState extends State<RosterManagementDialog> {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.close, color: slate500, size: 20),
+                          icon: const Icon(
+                            Icons.close,
+                            color: slate500,
+                            size: 20,
+                          ),
                           onPressed: () => widget.onRemoveAthlete(athlete.id),
                           constraints: const BoxConstraints(),
                           padding: EdgeInsets.zero,
@@ -122,7 +127,10 @@ class _RosterManagementDialogState extends State<RosterManagementDialog> {
           onPressed: () {
             widget.onResetDefaults();
           },
-          child: const Text('Reset to 16 Default Names', style: TextStyle(color: slate400, fontSize: 12)),
+          child: const Text(
+            'Reset to 16 Default Names',
+            style: TextStyle(color: slate400, fontSize: 12),
+          ),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(backgroundColor: athleticBlue),

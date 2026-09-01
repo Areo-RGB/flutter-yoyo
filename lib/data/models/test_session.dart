@@ -40,7 +40,8 @@ class TestSession {
       maxDistanceAchieved: maxDistanceAchieved ?? this.maxDistanceAchieved,
       maxLevelAchieved: maxLevelAchieved ?? this.maxLevelAchieved,
       totalAthletesCount: totalAthletesCount ?? this.totalAthletesCount,
-      completedAthletesCount: completedAthletesCount ?? this.completedAthletesCount,
+      completedAthletesCount:
+          completedAthletesCount ?? this.completedAthletesCount,
       notes: notes ?? this.notes,
     );
   }
@@ -118,7 +119,8 @@ class AthleteResult {
       finalDistanceMeters: finalDistanceMeters ?? this.finalDistanceMeters,
       finalLevel: finalLevel ?? this.finalLevel,
       finalShuttleNumber: finalShuttleNumber ?? this.finalShuttleNumber,
-      warningDistanceMeters: warningDistanceMeters ?? this.warningDistanceMeters,
+      warningDistanceMeters:
+          warningDistanceMeters ?? this.warningDistanceMeters,
       warningLevel: warningLevel ?? this.warningLevel,
       rank: rank ?? this.rank,
       vo2Max: vo2Max ?? this.vo2Max,
@@ -160,8 +162,5 @@ class SessionWithResults {
   final TestSession session;
   final List<AthleteResult> results;
 
-  const SessionWithResults({
-    required this.session,
-    required this.results,
-  });
+  const SessionWithResults({required this.session, required this.results});
 }
