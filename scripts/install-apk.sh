@@ -1,15 +1,31 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VARIANT="${1:-debug}"
-APK_PATH="${2:-app/build/outputs/apk/${VARIANT}/app-${VARIANT}.apk}"
-PACKAGE="${PACKAGE:-com.aistudio.yoyoir1.track}"
-LAUNCH_ACTIVITY="${LAUNCH_ACTIVITY:-$PACKAGE/com.example.MainActivity}"
+# Script directory and project root setup
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_ROOT"
 
+VARIANT="${1:-debug}"
+SKIP_BUILD="${SKIP_BUILD:-false}"
+PACKAGE="${PACKAGE:-com.aistudio.yoyoir1.track}"
+
+# 1. Build APK Flow
+if [ "$SKIP_BUILD" != "true" ]; then
+  echo "=== Step 1/2: Building $VARIANT APK ==="
+  "$SCRIPT_DIR/build-apk.sh" "$VARIANT"
+else
+  echo "=== Step 1/2: Skipping Build (SKIP_BUILD=true) ==="
+fi
+
+APK_PATH="build/app/outputs/flutter-apk/app-${VARIANT}.apk"
 if [ ! -f "$APK_PATH" ]; then
   echo "Error: APK not found at $APK_PATH" >&2
   exit 1
 fi
+
+# 2. Install & Launch Flow
+echo "=== Step 2/2: Installation Flow ==="
 
 PERMS=""
 if command -v aapt2 &>/dev/null; then
@@ -25,13 +41,14 @@ if [ -z "$DEVICES" ]; then
 fi
 
 for DEVICE in $DEVICES; do
-  echo "=== Installing on $DEVICE ==="
+  echo "--- Installing on device $DEVICE ---"
 
   echo "Stopping $PACKAGE on $DEVICE ..."
-  adb -s "$DEVICE" shell am force-stop "$PACKAGE" 2>/dev/null && echo "  stopped" || echo "  skip stop (not running or failed)"
+  adb -s "$DEVICE" shell am force-stop "$PACKAGE" 2>/dev/null && echo "  Stopped" || echo "  Not running"
 
+  echo "Installing $APK_PATH ..."
   if ! adb -s "$DEVICE" install -r "$APK_PATH"; then
-    echo "Install failed on $DEVICE, continuing..." >&2
+    echo "  Install failed on $DEVICE, continuing to next device..." >&2
     continue
   fi
 
@@ -39,14 +56,16 @@ for DEVICE in $DEVICES; do
     echo "Granting permissions for $PACKAGE on $DEVICE ..."
     while IFS= read -r PERM; do
       [ -z "$PERM" ] && continue
-      adb -s "$DEVICE" shell pm grant "$PACKAGE" "$PERM" 2>/dev/null && echo "  granted $PERM" || echo "  skip $PERM (not grantable or already granted)"
+      adb -s "$DEVICE" shell pm grant "$PACKAGE" "$PERM" 2>/dev/null && echo "  Granted $PERM" || true
     done <<< "$PERMS"
-  else
-    echo "No permissions extracted (no aapt), skipping grants."
   fi
 
-  echo "Launching $LAUNCH_ACTIVITY on $DEVICE ..."
-  adb -s "$DEVICE" shell am start -n "$LAUNCH_ACTIVITY" 2>/dev/null && echo "  launched" || echo "  launch failed on $DEVICE" >&2
+  echo "Launching $PACKAGE on $DEVICE ..."
+  if adb -s "$DEVICE" shell monkey -p "$PACKAGE" -c android.intent.category.LAUNCHER 1 &>/dev/null; then
+    echo "  Successfully launched on $DEVICE"
+  else
+    echo "  Launch failed on $DEVICE" >&2
+  fi
 done
 
-echo "Done."
+echo "=== Install flow complete ==="

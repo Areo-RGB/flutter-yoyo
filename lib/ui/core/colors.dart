@@ -1,0 +1,25 @@
+import 'dart:ui';
+
+const athleticBlue = Color(0xFF0284C7);
+const athleticBlueLight = Color(0xFF38BDF8);
+const athleticBlueDark = Color(0xFF0369A1);
+const runGreen = Color(0xFF10B981);
+const runGreenDark = Color(0xFF047857);
+const runGreenLight = Color(0xFF6EE7B7);
+const warnOrange = Color(0xFFF97316);
+const warnOrangeDark = Color(0xFFC2410C);
+const warnOrangeLight = Color(0xFFFDBA74);
+const warnOrangeBg = Color(0xFFFFF7ED);
+const warnOrangeBgDark = Color(0xFF431407);
+const eliminateRed = Color(0xFFEF4444);
+const eliminateRedDark = Color(0xFFB91C1C);
+const eliminateRedLight = Color(0xFFFCA5A5);
+const slate900 = Color(0xFF0F172A);
+const slate800 = Color(0xFF1E293B);
+const slate700 = Color(0xFF334155);
+const slate600 = Color(0xFF475569);
+const slate500 = Color(0xFF64748B);
+const slate400 = Color(0xFF94A3B8);
+const slate200 = Color(0xFFE2E8F0);
+const slate100 = Color(0xFFF1F5F9);
+const slate50 = Color(0xFFF8FAFC);

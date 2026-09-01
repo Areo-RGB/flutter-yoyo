@@ -1,0 +1,38 @@
+name: yoyo_ir1_tracker
+description: "Yo-Yo Intermittent Recovery Test Level 1 Tracker - Dynamic test tracker with live distance meter, athlete warning/elimination cards, and results saving."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management & DI
+  provider: ^6.1.2
+
+  # Database (SQLite)
+  sqflite: ^2.4.2
+  path: ^1.9.1
+
+  # Audio playback
+  audioplayers: ^6.1.0
+
+  # Utilities
+  intl: ^0.20.2
+  share_plus: ^10.1.4
+  path_provider: ^2.1.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/audio/audio.mp3
