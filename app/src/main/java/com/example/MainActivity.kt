@@ -11,10 +11,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Leaderboard
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -32,11 +31,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.screens.ActiveTestScreen
 import com.example.ui.screens.HistoryScreen
-import com.example.ui.screens.ProtocolReferenceScreen
 import com.example.ui.screens.RosterManagementDialog
 import com.example.ui.screens.SessionSummaryScreen
+import com.example.ui.screens.SettingsScreen
 import com.example.ui.theme.AthleticBlue
-import com.example.ui.theme.Slate800
 import com.example.ui.theme.Slate900
 import com.example.ui.theme.YoYoTheme
 import com.example.viewmodel.AppTab
@@ -117,10 +115,10 @@ fun YoYoApp(viewModel: YoYoViewModel) {
                 )
 
                 NavigationBarItem(
-                    selected = uiState.activeTab == AppTab.PROTOCOL,
-                    onClick = { viewModel.setActiveTab(AppTab.PROTOCOL) },
-                    icon = { Icon(Icons.Default.Info, contentDescription = "Protocol") },
-                    label = { Text("Protocol") },
+                    selected = uiState.activeTab == AppTab.SETTINGS,
+                    onClick = { viewModel.setActiveTab(AppTab.SETTINGS) },
+                    icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
+                    label = { Text("Settings") },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color.White,
                         selectedTextColor = Color.White,
@@ -128,7 +126,7 @@ fun YoYoApp(viewModel: YoYoViewModel) {
                         unselectedIconColor = Color.Gray,
                         unselectedTextColor = Color.Gray
                     ),
-                    modifier = Modifier.testTag("nav_protocol_tab")
+                    modifier = Modifier.testTag("nav_settings_tab")
                 )
             }
         }
@@ -174,8 +172,13 @@ fun YoYoApp(viewModel: YoYoViewModel) {
                     )
                 }
 
-                AppTab.PROTOCOL -> {
-                    ProtocolReferenceScreen()
+                AppTab.SETTINGS -> {
+                    SettingsScreen(
+                        volumeBoost = uiState.volumeBoost,
+                        isBoostEnabled = uiState.isBoostEnabled,
+                        onBoostEnabledChange = { viewModel.setBoostEnabled(it) },
+                        onVolumeBoostChange = { viewModel.setVolumeBoost(it) }
+                    )
                 }
             }
         }

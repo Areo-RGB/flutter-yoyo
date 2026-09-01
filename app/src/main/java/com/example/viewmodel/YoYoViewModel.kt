@@ -36,6 +36,8 @@ data class YoYoUiState(
     val currentShuttleElapsedMillis: Long = 0L,
     val currentPhase: ShuttlePhase = ShuttlePhase.RUNNING,
     val isSoundEnabled: Boolean = true,
+    val volumeBoost: Float = 1f,
+    val isBoostEnabled: Boolean = false,
     val sessionSavedId: Long? = null,
     val undoStack: List<AthleteUndoAction> = emptyList(),
     val activeTab: AppTab = AppTab.TEST
@@ -99,7 +101,7 @@ enum class AppTab {
     TEST,
     LEADERBOARD,
     HISTORY,
-    PROTOCOL
+    SETTINGS
 }
 
 data class AthleteUndoAction(
@@ -184,7 +186,9 @@ class YoYoViewModel(application: Application) : AndroidViewModel(application) {
                         finalLevel = athlete.finalLevel ?: currentLevel,
                         finalShuttle = athlete.finalShuttle ?: currentShuttleNum,
                         finishTimestampMs = System.currentTimeMillis(),
-                        vo2Max = YoYoProtocol.calculateVo2Max(athlete.finalDistanceMeters ?: currentDistance)
+                        vo2Max = YoYoProtocol.calculateVo2Max(
+                            athlete.finalDistanceMeters ?: currentDistance
+                        )
                     )
                 } else {
                     athlete
@@ -240,11 +244,22 @@ class YoYoViewModel(application: Application) : AndroidViewModel(application) {
         _uiState.update { it.copy(isSoundEnabled = newSound) }
     }
 
+    fun setVolumeBoost(boost: Float) {
+        _uiState.update { it.copy(volumeBoost = boost.coerceIn(1f, 3f)) }
+        soundHelper.setVolumeBoost(boost, _uiState.value.isBoostEnabled)
+    }
+
+    fun setBoostEnabled(enabled: Boolean) {
+        _uiState.update { it.copy(isBoostEnabled = enabled) }
+        soundHelper.setVolumeBoost(_uiState.value.volumeBoost, enabled)
+    }
+
     fun adjustTimeSeconds(deltaSeconds: Double) {
         val deltaMillis = (deltaSeconds * 1000).toLong()
         _uiState.update { current ->
             val newTotal = (current.totalElapsedMillis + deltaMillis).coerceAtLeast(0L)
-            val newShuttleElapsed = (current.currentShuttleElapsedMillis + deltaMillis).coerceAtLeast(0L)
+            val newShuttleElapsed =
+                (current.currentShuttleElapsedMillis + deltaMillis).coerceAtLeast(0L)
             soundHelper.seekAudioTrackTo(newTotal)
             current.copy(
                 totalElapsedMillis = newTotal,
@@ -309,7 +324,10 @@ class YoYoViewModel(application: Application) : AndroidViewModel(application) {
                     warningShuttle = currentShuttleNum,
                     warningTimestampMs = System.currentTimeMillis()
                 )
-                recordUndoAction(athlete, "Warned ${athlete.name} at ${currentDistance}m ($currentLevel)")
+                recordUndoAction(
+                    athlete,
+                    "Warned ${athlete.name} at ${currentDistance}m ($currentLevel)"
+                )
                 updateSingleAthlete(updatedAthlete)
                 soundHelper.playWarningBeep()
             }
@@ -324,7 +342,10 @@ class YoYoViewModel(application: Application) : AndroidViewModel(application) {
                     finishTimestampMs = System.currentTimeMillis(),
                     vo2Max = YoYoProtocol.calculateVo2Max(currentDistance)
                 )
-                recordUndoAction(athlete, "Eliminated ${athlete.name} at ${currentDistance}m ($currentLevel)")
+                recordUndoAction(
+                    athlete,
+                    "Eliminated ${athlete.name} at ${currentDistance}m ($currentLevel)"
+                )
                 updateSingleAthlete(updatedAthlete)
                 soundHelper.playEliminationBeep()
                 recalculateAllRanks()
@@ -392,6 +413,7 @@ class YoYoViewModel(application: Application) : AndroidViewModel(application) {
                     vo2Max = null
                 )
             }
+
             AthleteStatus.WARNED -> {
                 athlete.copy(
                     status = AthleteStatus.RUNNING,
@@ -401,6 +423,7 @@ class YoYoViewModel(application: Application) : AndroidViewModel(application) {
                     warningTimestampMs = null
                 )
             }
+
             AthleteStatus.RUNNING -> athlete
         }
         updateSingleAthlete(previousState)
@@ -471,7 +494,9 @@ class YoYoViewModel(application: Application) : AndroidViewModel(application) {
                 warningDistanceMeters = athlete.warningDistanceMeters,
                 warningLevel = athlete.warningLevel,
                 rank = athlete.rank ?: 99,
-                vo2Max = athlete.vo2Max ?: YoYoProtocol.calculateVo2Max(athlete.finalDistanceMeters ?: 0)
+                vo2Max = athlete.vo2Max ?: YoYoProtocol.calculateVo2Max(
+                    athlete.finalDistanceMeters ?: 0
+                )
             )
         }
 
@@ -506,7 +531,10 @@ class YoYoViewModel(application: Application) : AndroidViewModel(application) {
         return sb.toString()
     }
 
-    fun generateSummaryText(athletes: List<Athlete>, sessionTitle: String = "Yo-Yo IR1 Results"): String {
+    fun generateSummaryText(
+        athletes: List<Athlete>,
+        sessionTitle: String = "Yo-Yo IR1 Results"
+    ): String {
         val sb = StringBuilder()
         sb.append("🏃 $sessionTitle\n")
         sb.append("═".repeat(32)).append("\n")
@@ -601,7 +629,11 @@ class YoYoViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun recordUndoAction(previous: Athlete, description: String) {
         _uiState.update { current ->
-            val stack = (current.undoStack + AthleteUndoAction(previous.id, previous, description)).takeLast(20)
+            val stack = (current.undoStack + AthleteUndoAction(
+                previous.id,
+                previous,
+                description
+            )).takeLast(20)
             current.copy(undoStack = stack)
         }
     }

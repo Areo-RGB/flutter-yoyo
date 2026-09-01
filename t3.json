@@ -1,0 +1,36 @@
+{
+  "$schema": "https://t3.codes/schema/t3.json",
+  "scripts": [
+    {
+      "name": "Test",
+      "command": "bash scripts/test.sh",
+      "icon": "test"
+    },
+    {
+      "name": "Build",
+      "command": "bash scripts/build.sh release",
+      "icon": "build"
+    },
+    {
+      "name": "Build (Debug)",
+      "command": "bash scripts/build.sh debug",
+      "icon": "build"
+    },
+    {
+      "name": "Clean",
+      "command": "bash scripts/clean.sh",
+      "icon": "configure",
+      "runOnWorktreeCreate": true
+    },
+    {
+      "name": "Dev (Linux)",
+      "command": "bash scripts/dev.sh",
+      "icon": "debug"
+    },
+    {
+      "name": "Start",
+      "command": "bash scripts/start.sh",
+      "icon": "play"
+    }
+  ]
+}
