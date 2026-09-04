@@ -1,5 +1,5 @@
 import 'package:yoyo_ir1_tracker/data/models/athlete.dart';
-import 'package:yoyo_ir1_tracker/domain/yoyo_protocol.dart';
+import 'package:yoyo_ir1_tracker/domain/test_protocol.dart';
 
 /// Pure helpers extracted from [YoYoViewModel] so test-timing and ranking
 /// logic can be unit-tested without constructing timers or preferences.
@@ -13,13 +13,15 @@ class TestRuntime {
     ShuttlePhase phase,
     int index,
     TestState testState
-  }) deriveFromElapsedMs(int elapsedMs) {
+  }) deriveFromElapsedMs(int elapsedMs, {TestProtocol? protocol}) {
+    final activeProtocol = protocol ?? YoYoProtocolInstance();
+    final shuttles = activeProtocol.shuttles;
     if (elapsedMs < 0) elapsedMs = 0;
     int cumMs = 0;
-    for (int i = 0; i < YoYoProtocol.shuttles.length; i++) {
-      final s = YoYoProtocol.shuttles[i];
+    for (int i = 0; i < shuttles.length; i++) {
+      final s = shuttles[i];
       final runMs = (s.runDurationSeconds * 1000).round();
-      const recMs = 10000;
+      final recMs = (s.recoveryDurationSeconds * 1000).round();
       final totalMs = runMs + recMs;
       if (elapsedMs < cumMs + runMs) {
         return (
@@ -30,7 +32,7 @@ class TestRuntime {
           testState: TestState.running,
         );
       }
-      if (elapsedMs < cumMs + totalMs) {
+      if (recMs > 0 && elapsedMs < cumMs + totalMs) {
         return (
           totalMs: elapsedMs,
           shuttleElapsedMs: elapsedMs - cumMs,
@@ -41,12 +43,13 @@ class TestRuntime {
       }
       cumMs += totalMs;
     }
-    final last = YoYoProtocol.shuttles.length - 1;
-    final lastRunMs = (YoYoProtocol.shuttles[last].runDurationSeconds * 1000).round();
+    final last = shuttles.length - 1;
+    final lastRunMs = (shuttles[last].runDurationSeconds * 1000).round();
+    final lastRecMs = (shuttles[last].recoveryDurationSeconds * 1000).round();
     return (
       totalMs: elapsedMs,
-      shuttleElapsedMs: lastRunMs + 10000,
-      phase: ShuttlePhase.recovery,
+      shuttleElapsedMs: lastRunMs + lastRecMs,
+      phase: lastRecMs > 0 ? ShuttlePhase.recovery : ShuttlePhase.running,
       index: last,
       testState: TestState.completed,
     );

@@ -3,32 +3,36 @@ import 'package:audioplayers/audioplayers.dart';
 class SoundHelper {
   final AudioPlayer _mainTrackPlayer = AudioPlayer();
   bool _isSoundEnabled = true;
-  bool _isPrewarmed = false;
+  String _currentAsset = 'audio/audio.mp3';
+  int _audioStartOffsetMs = 0;
 
-  Future<void> init() async {
+  Future<void> init({String asset = 'audio/audio.mp3'}) async {
     try {
+      _currentAsset = asset;
       await _mainTrackPlayer.setReleaseMode(ReleaseMode.stop);
-      await _mainTrackPlayer.setSource(AssetSource('audio/audio.mp3'));
-      _isPrewarmed = true;
+      await _mainTrackPlayer.setSource(AssetSource(_currentAsset));
     } catch (e) {
       // Handle audio errors silently
     }
   }
 
-  void startAudioTrack() {
+  void startAudioTrack({String? assetPath, int startOffsetMs = 0}) {
     if (!_isSoundEnabled) return;
     unawaited(() async {
       try {
-        if (!_isPrewarmed) {
-          await _mainTrackPlayer.setSource(AssetSource('audio/audio.mp3'));
-          _isPrewarmed = true;
-        }
-        await _mainTrackPlayer.seek(Duration.zero);
+        final targetAsset = assetPath ?? _currentAsset;
+        _currentAsset = targetAsset;
+        _audioStartOffsetMs = startOffsetMs;
+
+        await _mainTrackPlayer.setSource(AssetSource(targetAsset));
+        await _mainTrackPlayer.seek(Duration(milliseconds: startOffsetMs));
         await _mainTrackPlayer.resume();
       } catch (e) {
-        // Fallback if resume fails
         try {
-          await _mainTrackPlayer.play(AssetSource('audio/audio.mp3'));
+          await _mainTrackPlayer.play(AssetSource(assetPath ?? _currentAsset));
+          if (startOffsetMs > 0) {
+            await _mainTrackPlayer.seek(Duration(milliseconds: startOffsetMs));
+          }
         } catch (_) {}
       }
     }());
@@ -47,7 +51,7 @@ class SoundHelper {
     unawaited(() async {
       try {
         await _mainTrackPlayer.pause();
-        await _mainTrackPlayer.seek(Duration.zero);
+        await _mainTrackPlayer.seek(Duration(milliseconds: _audioStartOffsetMs));
       } catch (_) {}
     }());
   }
@@ -56,8 +60,8 @@ class SoundHelper {
     stopAudioTrack();
   }
 
-  void seekAudioTrackTo(int positionMs) {
-    unawaited(_mainTrackPlayer.seek(Duration(milliseconds: positionMs)));
+  void seekAudioTrackTo(int elapsedMs) {
+    unawaited(_mainTrackPlayer.seek(Duration(milliseconds: _audioStartOffsetMs + elapsedMs)));
   }
 
   void setSoundEnabledState(bool enabled) {

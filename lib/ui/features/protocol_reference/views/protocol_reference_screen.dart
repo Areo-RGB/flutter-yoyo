@@ -1,12 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:yoyo_ir1_tracker/domain/yoyo_protocol.dart';
+import 'package:provider/provider.dart';
+import 'package:yoyo_ir1_tracker/domain/test_protocol.dart';
 import 'package:yoyo_ir1_tracker/ui/core/colors.dart';
+import 'package:yoyo_ir1_tracker/ui/features/active_test/view_models/yoyo_view_model.dart';
 
-class ProtocolReferenceScreen extends StatelessWidget {
+class ProtocolReferenceScreen extends StatefulWidget {
   const ProtocolReferenceScreen({super.key});
 
   @override
+  State<ProtocolReferenceScreen> createState() =>
+      _ProtocolReferenceScreenState();
+}
+
+class _ProtocolReferenceScreenState extends State<ProtocolReferenceScreen> {
+  TestType? _selectedTypeOverride;
+
+  @override
   Widget build(BuildContext context) {
+    final viewModel = context.watch<YoYoViewModel>();
+    final activeTestType =
+        _selectedTypeOverride ?? viewModel.state.selectedTestType;
+    final protocol = activeTestType.protocol;
+    final isYoYo = activeTestType == TestType.yoyoIR1;
+
     return Column(
       children: [
         Padding(
@@ -15,22 +31,51 @@ class ProtocolReferenceScreen extends StatelessWidget {
             children: [
               const Icon(Icons.info_outline, color: athleticBlue, size: 28),
               const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
-                    'Yo-Yo IR1 Protocol',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${activeTestType.displayName} Protocol',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
+                    Text(
+                      activeTestType.fullName,
+                      style: const TextStyle(color: slate400, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+              // Protocol Switcher Segmented Button
+              SegmentedButton<TestType>(
+                segments: const [
+                  ButtonSegment<TestType>(
+                    value: TestType.yoyoIR1,
+                    label: Text('Yo-Yo', style: TextStyle(fontSize: 12)),
                   ),
-                  Text(
-                    'Rules and shuttle reference',
-                    style: TextStyle(color: slate400, fontSize: 14),
+                  ButtonSegment<TestType>(
+                    value: TestType.beepTest,
+                    label: Text('Beep', style: TextStyle(fontSize: 12)),
                   ),
                 ],
+                selected: {activeTestType},
+                onSelectionChanged: (set) {
+                  setState(() {
+                    _selectedTypeOverride = set.first;
+                  });
+                },
+                style: ButtonStyle(
+                  backgroundColor: WidgetStateProperty.resolveWith((states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return athleticBlue.withValues(alpha: 0.25);
+                    }
+                    return slate800;
+                  }),
+                ),
               ),
             ],
           ),
@@ -42,23 +87,41 @@ class ProtocolReferenceScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildRuleBullet(
-                  'Test consists of 2 × 20m shuttles per speed level.',
-                ),
-                _buildRuleBullet(
-                  'Athletes have a 10-second active recovery period between shuttles (walking 2 × 5m).',
-                ),
-                _buildRuleBullet(
-                  'A warning is given if an athlete fails to complete a shuttle in time.',
-                ),
-                _buildRuleBullet(
-                  'An athlete is eliminated on their second failure.',
-                ),
-                _buildRuleBullet(
-                  'VO₂max calculation: IR1 distance (m) × 0.0084 + 36.4',
-                ),
-              ],
+              children: isYoYo
+                  ? [
+                      _buildRuleBullet(
+                        'Test consists of 2 × 20m shuttles per speed level.',
+                      ),
+                      _buildRuleBullet(
+                        'Athletes have a 10-second active recovery period between shuttles (walking 2 × 5m).',
+                      ),
+                      _buildRuleBullet(
+                        'A warning is given if an athlete fails to complete a shuttle in time.',
+                      ),
+                      _buildRuleBullet(
+                        'An athlete is eliminated on their second failure.',
+                      ),
+                      _buildRuleBullet(
+                        'VO₂max calculation: IR1 distance (m) × 0.0084 + 36.4',
+                      ),
+                    ]
+                  : [
+                      _buildRuleBullet(
+                        'Test consists of continuous 20m shuttle runs across 21 speed levels.',
+                      ),
+                      _buildRuleBullet(
+                        'No recovery period between shuttles; shuttle pace speeds up each level.',
+                      ),
+                      _buildRuleBullet(
+                        'A warning is given if an athlete fails to reach the line before the audio beep.',
+                      ),
+                      _buildRuleBullet(
+                        'An athlete is eliminated on their second consecutive failure.',
+                      ),
+                      _buildRuleBullet(
+                        'VO₂max calculation: Speed (km/h) × 3.1 + 3.5',
+                      ),
+                    ],
             ),
           ),
         ),
@@ -128,10 +191,11 @@ class ProtocolReferenceScreen extends StatelessWidget {
         ),
         Expanded(
           child: ListView.builder(
-            itemCount: YoYoProtocol.shuttles.length,
+            itemCount: protocol.shuttles.length,
             itemBuilder: (context, index) {
               return _ProtocolRow(
-                shuttle: YoYoProtocol.shuttles[index],
+                shuttle: protocol.shuttles[index],
+                protocol: protocol,
                 isEven: index % 2 == 0,
               );
             },
@@ -173,14 +237,22 @@ class ProtocolReferenceScreen extends StatelessWidget {
 }
 
 class _ProtocolRow extends StatelessWidget {
-  final YoYoShuttle shuttle;
+  final TestShuttle shuttle;
+  final TestProtocol protocol;
   final bool isEven;
 
-  const _ProtocolRow({required this.shuttle, required this.isEven});
+  const _ProtocolRow({
+    required this.shuttle,
+    required this.protocol,
+    required this.isEven,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final vo2 = YoYoProtocol.calculateVo2Max(shuttle.cumulativeDistanceMeters);
+    final vo2 = protocol.calculateVo2Max(
+      shuttle.cumulativeDistanceMeters,
+      speedKmh: shuttle.speedKmh,
+    );
     return Container(
       color: isEven ? slate900 : slate800,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

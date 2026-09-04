@@ -5,10 +5,8 @@ import 'package:yoyo_ir1_tracker/data/models/athlete.dart';
 import 'package:yoyo_ir1_tracker/data/repositories/yoyo_repository.dart';
 import 'package:yoyo_ir1_tracker/data/services/database_service.dart';
 import 'package:yoyo_ir1_tracker/data/services/nearby_connection_service.dart';
-import 'package:yoyo_ir1_tracker/data/services/update_service.dart';
 import 'package:yoyo_ir1_tracker/ui/core/colors.dart';
 import 'package:yoyo_ir1_tracker/ui/core/theme.dart';
-import 'package:yoyo_ir1_tracker/ui/core/update_dialog.dart';
 import 'package:yoyo_ir1_tracker/ui/features/active_test/view_models/yoyo_view_model.dart';
 import 'package:yoyo_ir1_tracker/ui/features/active_test/views/active_test_screen.dart';
 import 'package:yoyo_ir1_tracker/ui/features/history/views/history_screen.dart';
@@ -56,29 +54,8 @@ class YoYoApp extends StatelessWidget {
   }
 }
 
-class YoYoHome extends StatefulWidget {
+class YoYoHome extends StatelessWidget {
   const YoYoHome({super.key});
-
-  @override
-  State<YoYoHome> createState() => _YoYoHomeState();
-}
-
-class _YoYoHomeState extends State<YoYoHome> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkForAppUpdate();
-    });
-  }
-
-  Future<void> _checkForAppUpdate() async {
-    final updateService = UpdateService();
-    final updateInfo = await updateService.checkForUpdate();
-    if (updateInfo != null && mounted) {
-      UpdateDialog.showIfAvailable(context, updateInfo);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

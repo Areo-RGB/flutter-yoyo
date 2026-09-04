@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:yoyo_ir1_tracker/data/services/nearby_connection_service.dart';
-import 'package:yoyo_ir1_tracker/data/services/update_service.dart';
 import 'package:yoyo_ir1_tracker/domain/remote_protocol.dart';
 import 'package:yoyo_ir1_tracker/ui/core/colors.dart';
-import 'package:yoyo_ir1_tracker/ui/core/update_dialog.dart';
 import 'package:yoyo_ir1_tracker/ui/features/settings/views/remote_connection_card.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -176,43 +174,6 @@ class SettingsScreen extends StatelessWidget {
                     ],
                   ],
                 ),
-              ),
-            ),
-            Card(
-              color: slate900,
-              margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: ListTile(
-                leading: const Icon(Icons.system_update, color: athleticBlueLight),
-                title: const Text(
-                  'Check for Updates',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-                subtitle: const Text(
-                  'Current Version: v1.0.0',
-                  style: TextStyle(color: slate400, fontSize: 13),
-                ),
-                trailing: const Icon(Icons.chevron_right, color: slate400),
-                onTap: () async {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Checking GitHub for updates...'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                  final updateService = UpdateService();
-                  final updateInfo = await updateService.checkForUpdate();
-                  if (context.mounted) {
-                    if (updateInfo != null) {
-                      UpdateDialog.showIfAvailable(context, updateInfo);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('You are using the latest version (v1.0.0).'),
-                        ),
-                      );
-                    }
-                  }
-                },
               ),
             ),
           ],
