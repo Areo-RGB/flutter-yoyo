@@ -43,4 +43,5 @@ flutter:
   assets:
     - assets/logo.png
     - assets/audio/audio.mp3
+    - assets/audio/beep_test.m4a
     - assets/avatars/

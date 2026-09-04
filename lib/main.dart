@@ -13,6 +13,7 @@ import 'package:yoyo_ir1_tracker/ui/features/history/views/history_screen.dart';
 import 'package:yoyo_ir1_tracker/ui/features/live_results/views/live_results_screen.dart';
 import 'package:yoyo_ir1_tracker/ui/features/settings/views/settings_screen.dart';
 import 'package:yoyo_ir1_tracker/ui/features/setup/views/setup_screen.dart';
+import 'package:yoyo_ir1_tracker/ui/features/startup/views/startup_screen.dart';
 import 'package:yoyo_ir1_tracker/ui/features/tabelle/views/tabelle_screen.dart';
 import 'package:yoyo_ir1_tracker/utils/sound_helper.dart';
 
@@ -69,6 +70,7 @@ class YoYoHome extends StatelessWidget {
     final isLiveVisible = state.testState != TestState.idle;
 
     final visibleTabs = <AppTab>[
+      AppTab.startup,
       AppTab.setup,
       if (isLiveVisible) AppTab.live,
       if (isLiveVisible) AppTab.leaderboard,
@@ -78,10 +80,10 @@ class YoYoHome extends StatelessWidget {
     ];
 
     // If the stored activeTab is currently hidden (e.g. after a reset),
-    // fall back to Setup for rendering and for the nav highlight.
+    // fall back to Startup for rendering and for the nav highlight.
     final effectiveTab = visibleTabs.contains(state.activeTab)
         ? state.activeTab
-        : AppTab.setup;
+        : AppTab.startup;
 
     // Gently correct the view-model after the frame so next rebuild is
     // consistent — avoids calling notify during build.
@@ -95,6 +97,9 @@ class YoYoHome extends StatelessWidget {
 
     Widget body;
     switch (effectiveTab) {
+      case AppTab.startup:
+        body = const StartupScreen();
+        break;
       case AppTab.setup:
         body = const SetupScreen();
         break;
@@ -155,6 +160,10 @@ class YoYoHome extends StatelessWidget {
         backgroundColor: slate900,
         indicatorColor: athleticBlue,
         destinations: [
+          const NavigationDestination(
+            icon: Icon(Icons.fitness_center),
+            label: 'Startup',
+          ),
           const NavigationDestination(
             icon: Icon(Icons.playlist_add_check),
             label: 'Setup',

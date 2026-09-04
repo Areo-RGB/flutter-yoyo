@@ -95,6 +95,53 @@ class SetupScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 10),
+                // Active Test Protocol Banner
+                InkWell(
+                  onTap: () => viewModel.setActiveTab(AppTab.startup),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: athleticBlue.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: athleticBlue.withValues(alpha: 0.4)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.fitness_center, color: athleticBlueLight, size: 16),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Test: ${state.selectedTestType.displayName}',
+                              style: const TextStyle(
+                                color: athleticBlueLight,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Row(
+                          children: [
+                            Text(
+                              'Change Protocol',
+                              style: TextStyle(
+                                color: slate400,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(width: 2),
+                            Icon(Icons.chevron_right, color: slate400, size: 14),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     Expanded(

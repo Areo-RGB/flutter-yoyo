@@ -12,11 +12,11 @@ import 'package:yoyo_ir1_tracker/data/services/remote_preferences.dart';
 import 'package:yoyo_ir1_tracker/domain/remote_messages.dart';
 import 'package:yoyo_ir1_tracker/domain/remote_protocol.dart';
 import 'package:yoyo_ir1_tracker/domain/session_export.dart';
+import 'package:yoyo_ir1_tracker/domain/test_protocol.dart';
 import 'package:yoyo_ir1_tracker/domain/test_runtime.dart';
-import 'package:yoyo_ir1_tracker/domain/yoyo_protocol.dart';
 import 'package:yoyo_ir1_tracker/utils/sound_helper.dart';
 
-enum AppTab { setup, live, leaderboard, tabelle, history, settings }
+enum AppTab { startup, setup, live, leaderboard, tabelle, history, settings }
 
 class AthleteUndoAction {
   final String athleteId;
@@ -43,6 +43,7 @@ class YoYoUiState {
   final int? sessionSavedId;
   final List<AthleteUndoAction> undoStack;
   final AppTab activeTab;
+  final TestType selectedTestType;
 
   // Remote state is a session-only mirror/configuration surface. A controller
   // must render remoteSnapshot instead of the host's local timer fields.
@@ -66,7 +67,8 @@ class YoYoUiState {
     this.isBoostEnabled = false,
     this.sessionSavedId,
     this.undoStack = const [],
-    this.activeTab = AppTab.setup,
+    this.activeTab = AppTab.startup,
+    this.selectedTestType = TestType.yoyoIR1,
     this.remoteRole = RemoteRole.tablet,
     this.remoteEnabled = false,
     this.remoteConnection = const NearbyConnectionState(),
@@ -89,6 +91,7 @@ class YoYoUiState {
     Object? sessionSavedId = _unset,
     List<AthleteUndoAction>? undoStack,
     AppTab? activeTab,
+    TestType? selectedTestType,
     RemoteRole? remoteRole,
     bool? remoteEnabled,
     NearbyConnectionState? remoteConnection,
@@ -113,6 +116,7 @@ class YoYoUiState {
           : sessionSavedId as int?,
       undoStack: undoStack ?? this.undoStack,
       activeTab: activeTab ?? this.activeTab,
+      selectedTestType: selectedTestType ?? this.selectedTestType,
       remoteRole: remoteRole ?? this.remoteRole,
       remoteEnabled: remoteEnabled ?? this.remoteEnabled,
       remoteConnection: remoteConnection ?? this.remoteConnection,
@@ -128,24 +132,29 @@ class YoYoUiState {
     );
   }
 
-  YoYoShuttle get currentShuttle =>
-      YoYoProtocol.shuttles[currentShuttleIndex.clamp(
-        0,
-        YoYoProtocol.shuttles.length - 1,
-      )];
+  TestShuttle get currentShuttle {
+    final shuttles = selectedTestType.protocol.shuttles;
+    return shuttles[currentShuttleIndex.clamp(
+      0,
+      shuttles.length - 1,
+    )];
+  }
 
   List<Athlete> get selectedAthletes =>
       athletes.where((athlete) => athlete.isSelected).toList();
 
   int get currentDistanceMeters {
     if (testState == TestState.idle) return 0;
+    final protocol = selectedTestType.protocol;
     if (testState == TestState.completed) {
-      return YoYoProtocol.shuttles.length * 40;
+      return protocol.maxDistanceMeters;
     }
+    final idx = currentShuttleIndex.clamp(0, protocol.shuttles.length - 1);
     if (currentPhase == ShuttlePhase.recovery) {
-      return (currentShuttleIndex + 1) * 40;
+      return protocol.shuttles[idx].cumulativeDistanceMeters;
     }
-    return currentShuttleIndex * 40;
+    if (idx == 0) return 0;
+    return protocol.shuttles[idx - 1].cumulativeDistanceMeters;
   }
 
   int get activeRunnersCount => selectedAthletes
@@ -175,7 +184,8 @@ class YoYoUiState {
   }
 
   double get recoveryPhaseRemainingSeconds {
-    final totalDuration = currentShuttle.runDurationSeconds + 10.0;
+    final recoverySec = currentShuttle.recoveryDurationSeconds;
+    final totalDuration = currentShuttle.runDurationSeconds + recoverySec;
     final remaining = totalDuration - (currentShuttleElapsedMillis / 1000.0);
     return remaining > 0 ? remaining : 0.0;
   }
@@ -186,10 +196,12 @@ class YoYoUiState {
               currentShuttle.runDurationSeconds)
           .clamp(0.0, 1.0);
     }
+    final recSec = currentShuttle.recoveryDurationSeconds;
+    if (recSec <= 0) return 1.0;
     final recoveryElapsed =
         (currentShuttleElapsedMillis / 1000.0) -
         currentShuttle.runDurationSeconds;
-    return (recoveryElapsed / 10.0).clamp(0.0, 1.0);
+    return (recoveryElapsed / recSec).clamp(0.0, 1.0);
   }
 
   bool get isController => remoteRole == RemoteRole.controller;
@@ -305,7 +317,12 @@ class YoYoViewModel extends ChangeNotifier {
         currentShuttleIndex: 0,
         lastRemoteCommandMessage: null,
       );
-      if (_state.isSoundEnabled) soundHelper.startAudioTrack();
+      final assetPath = _state.selectedTestType == TestType.beepTest
+          ? 'audio/beep_test.m4a'
+          : 'audio/audio.mp3';
+      if (_state.isSoundEnabled) {
+        soundHelper.startAudioTrack(assetPath: assetPath);
+      }
       _startTicker();
       notifyListeners();
       _publishHostSnapshot(immediate: true);
@@ -362,7 +379,10 @@ class YoYoViewModel extends ChangeNotifier {
           finalDistanceMeters: receipt.distanceMeters,
           finalLevel: receipt.level,
           finalShuttle: receipt.shuttleInLevel,
-          vo2Max: YoYoProtocol.calculateVo2Max(receipt.distanceMeters),
+          vo2Max: _state.selectedTestType.protocol.calculateVo2Max(
+            receipt.distanceMeters,
+            speedKmh: _state.currentShuttle.speedKmh,
+          ),
           finishTimestampMs: receipt.timestampMs,
         );
       }
@@ -486,6 +506,13 @@ class YoYoViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setSelectedTestType(TestType type) {
+    if (_isController || _state.testState != TestState.idle) return;
+    _state = _state.copyWith(selectedTestType: type);
+    notifyListeners();
+    _publishHostSnapshot(immediate: true);
+  }
+
   void toggleSound() {
     if (_isController) return;
     final nextSoundState = !_state.isSoundEnabled;
@@ -568,7 +595,10 @@ class YoYoViewModel extends ChangeNotifier {
       finalDistanceMeters: receipt.distanceMeters,
       finalLevel: receipt.level,
       finalShuttle: receipt.shuttleInLevel,
-      vo2Max: YoYoProtocol.calculateVo2Max(receipt.distanceMeters),
+      vo2Max: _state.selectedTestType.protocol.calculateVo2Max(
+        receipt.distanceMeters,
+        speedKmh: _state.currentShuttle.speedKmh,
+      ),
       finishTimestampMs: receipt.timestampMs,
     );
     _updateSingleAthlete(updated);
@@ -1090,7 +1120,7 @@ class YoYoViewModel extends ChangeNotifier {
     // free-run (phase/recovery transitions happen on-device). Re-anchoring
     // on each snapshot keeps drift bounded without requiring exact sync.
     final shuttleIndex =
-        (snapshot.currentShuttleNumber - 1).clamp(0, YoYoProtocol.shuttles.length - 1);
+        (snapshot.currentShuttleNumber - 1).clamp(0, _state.selectedTestType.protocol.shuttles.length - 1);
     _state = _state.copyWith(
       testState: snapshot.testState,
       currentShuttleIndex: shuttleIndex,
@@ -1236,7 +1266,7 @@ class YoYoViewModel extends ChangeNotifier {
 
   ({int totalMs, int shuttleElapsedMs, ShuttlePhase phase, int index, TestState testState})
   _deriveFromElapsedMs(int elapsedMs) =>
-      TestRuntime.deriveFromElapsedMs(elapsedMs);
+      TestRuntime.deriveFromElapsedMs(elapsedMs, protocol: _state.selectedTestType.protocol);
 
   // --- tablet heartbeat / controller stale + command timeout helpers ---
 
@@ -1320,15 +1350,28 @@ class YoYoViewModel extends ChangeNotifier {
     var newTestState = _state.testState;
     final currentShuttle = _state.currentShuttle;
     final runTimeMs = currentShuttle.runDurationSeconds * 1000.0;
-    const recoveryTimeMs = 10000.0;
+    final recoveryTimeMs = currentShuttle.recoveryDurationSeconds * 1000.0;
+    final totalShuttles = _state.selectedTestType.protocol.shuttles.length;
+
     if (newPhase == ShuttlePhase.running && newShuttleElapsed >= runTimeMs) {
-      newPhase = ShuttlePhase.recovery;
+      if (recoveryTimeMs > 0) {
+        newPhase = ShuttlePhase.recovery;
+      } else {
+        newPhase = ShuttlePhase.running;
+        newShuttleElapsed = 0;
+        newIndex++;
+        if (newIndex >= totalShuttles) {
+          newTestState = TestState.completed;
+          newIndex--;
+          _timer?.cancel();
+        }
+      }
     } else if (newPhase == ShuttlePhase.recovery &&
         newShuttleElapsed >= runTimeMs + recoveryTimeMs) {
       newPhase = ShuttlePhase.running;
       newShuttleElapsed = 0;
       newIndex++;
-      if (newIndex >= YoYoProtocol.shuttles.length) {
+      if (newIndex >= totalShuttles) {
         newTestState = TestState.completed;
         newIndex--;
         _timer?.cancel();
